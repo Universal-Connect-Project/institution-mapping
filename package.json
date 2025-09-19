@@ -15,5 +15,12 @@
   "bugs": {
     "url": "https://github.com/Universal-Connect-Project/institution-mapping/issues"
   },
-  "homepage": "https://github.com/Universal-Connect-Project/institution-mapping#readme"
+  "homepage": "https://github.com/Universal-Connect-Project/institution-mapping#readme",
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "commander": "^14.0.1"
+  }
 }
