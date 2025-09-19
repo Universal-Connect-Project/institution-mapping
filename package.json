@@ -1,0 +1,19 @@
+{
+  "name": "institution-mapping",
+  "version": "0.0.1",
+  "description": "A tool to help match aggregator institutions to ucp institutions",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Universal-Connect-Project/institution-mapping.git"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Universal-Connect-Project/institution-mapping/issues"
+  },
+  "homepage": "https://github.com/Universal-Connect-Project/institution-mapping#readme"
+}
