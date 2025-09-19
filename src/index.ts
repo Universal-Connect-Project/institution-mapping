@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+import dotenv from "dotenv";
+import path from "path";
+
+dotenv.config({
+  path: path.resolve(__dirname, "../environment/.env"),
+});
+
 import { Command } from "commander";
 import { loadCommands } from "./commands/mergeInstitutions";
 
