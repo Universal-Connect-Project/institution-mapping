@@ -7,6 +7,6 @@ export function loadCommands(program: Command) {
     .command("merge")
     .description("Merge institutions")
     .action(async () => {
-      console.log(await fetchInstitutions());
+      await fetchInstitutions();
     });
 }

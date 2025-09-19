@@ -4,6 +4,7 @@ import path from "path";
 
 dotenv.config({
   path: path.resolve(__dirname, "../environment/.env"),
+  quiet: true,
 });
 
 import { Command } from "commander";
