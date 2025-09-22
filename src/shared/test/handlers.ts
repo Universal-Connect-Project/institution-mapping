@@ -2,7 +2,7 @@ import { http, HttpResponse } from "msw";
 import {
   FETCH_FINICITY_ACCESS_TOKEN_URL,
   FETCH_FINICITY_INSTITUTIONS_URL,
-} from "../../fetchInstitutions/finicity";
+} from "../../fetchInstitutions/finicityInstitutions";
 import {
   finicityInstitutionsPage1,
   finicityInstitutionsPage2,

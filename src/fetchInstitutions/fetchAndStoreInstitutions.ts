@@ -1,4 +1,4 @@
-import { fetchFinicityInstitutions } from "./finicity";
+import { fetchFinicityInstitutions } from "./finicityInstitutions";
 import { Aggregators } from "../shared/const/aggregators";
 import { promises } from "fs";
 import path from "path";
