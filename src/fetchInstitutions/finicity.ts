@@ -1,29 +1,28 @@
-import {
-  FINICITY_APP_KEY,
-  FINICITY_PARTNER_ID,
-  FINICITY_SECRET,
-} from "../environment";
+import { getConfig } from "../environment";
+
+export const FETCH_FINICITY_ACCESS_TOKEN_URL =
+  "https://api.finicity.com/aggregation/v2/partners/authentication";
 
 const fetchAccessToken = async () => {
+  const { FINICITY_APP_KEY, FINICITY_PARTNER_ID, FINICITY_SECRET } =
+    getConfig();
+
   if (!FINICITY_APP_KEY || !FINICITY_PARTNER_ID || !FINICITY_SECRET) {
     throw new Error("Missing Finicity environment variables");
   }
 
-  const authResponse = await fetch(
-    "https://api.finicity.com/aggregation/v2/partners/authentication",
-    {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "content-type": "application/json",
-        "finicity-app-key": FINICITY_APP_KEY,
-      },
-      body: JSON.stringify({
-        partnerId: FINICITY_PARTNER_ID,
-        partnerSecret: FINICITY_SECRET,
-      }),
-    }
-  );
+  const authResponse = await fetch(FETCH_FINICITY_ACCESS_TOKEN_URL, {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "content-type": "application/json",
+      "finicity-app-key": FINICITY_APP_KEY,
+    },
+    body: JSON.stringify({
+      partnerId: FINICITY_PARTNER_ID,
+      partnerSecret: FINICITY_SECRET,
+    }),
+  });
 
   if (!authResponse.ok) {
     throw new Error(
@@ -38,6 +37,9 @@ const fetchAccessToken = async () => {
 
 const pageSize = 1000;
 
+export const FETCH_FINICITY_INSTITUTIONS_URL =
+  "https://api.finicity.com/institution/v2/institutions";
+
 const fetchInstitutionPage = async ({
   page,
   token,
@@ -45,8 +47,10 @@ const fetchInstitutionPage = async ({
   page: number;
   token: string;
 }) => {
+  const { FINICITY_APP_KEY } = getConfig();
+
   const response = await fetch(
-    `https://api.finicity.com/institution/v2/institutions?start=${page}&limit=${pageSize}`,
+    `${FETCH_FINICITY_INSTITUTIONS_URL}?start=${page}&limit=${pageSize}`,
     {
       method: "GET",
       headers: {

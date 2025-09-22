@@ -6,7 +6,7 @@
   "scripts": {
     "command": "npx tsc && node dist/index.js",
     "copyEnv": "cp ./environment/.example.env ./environment/.env",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest"
   },
   "repository": {
     "type": "git",
@@ -20,7 +20,9 @@
   "homepage": "https://github.com/Universal-Connect-Project/institution-mapping#readme",
   "devDependencies": {
     "@types/node": "^24.5.2",
-    "typescript": "^5.9.2"
+    "msw": "^2.11.3",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "@inquirer/prompts": "^7.8.6",

@@ -1,3 +1,7 @@
-export const FINICITY_APP_KEY = process.env.FINICITY_APP_KEY;
-export const FINICITY_PARTNER_ID = process.env.FINICITY_PARTNER_ID;
-export const FINICITY_SECRET = process.env.FINICITY_SECRET;
+export const getConfig = () => {
+  return {
+    FINICITY_APP_KEY: process.env.FINICITY_APP_KEY,
+    FINICITY_PARTNER_ID: process.env.FINICITY_PARTNER_ID,
+    FINICITY_SECRET: process.env.FINICITY_SECRET,
+  };
+};
