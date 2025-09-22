@@ -25,7 +25,11 @@ describe("fetchAndStoreInstitutions", () => {
     it(`fetches institutions, creates a directory if it doesn't exist, and stores the institutions ${Aggregators.Finicity}`, async () => {
       const folderPath = path.join(__dirname, "../../aggregatorInstitutions");
 
-      await promises.rmdir(folderPath, { recursive: true });
+      try {
+        await promises.rmdir(folderPath, { recursive: true });
+      } catch {
+        // ignore
+      }
 
       await fetchAndStoreInstitutions(Aggregators.Finicity);
 
