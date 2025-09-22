@@ -1,24 +1,24 @@
 import { Command } from "commander";
-import { select } from "@inquirer/prompts";
-import { fetchInstitutions } from "../fetchInstitutions/fetchInstitutions";
-import {
-  AggregatorDisplayNameMap,
-  Aggregators,
-} from "../shared/const/aggregators";
+import { fetchAndStoreInstitutions } from "../fetchInstitutions/fetchAndStoreInstitutions";
+import { selectAggregator } from "./utils";
+import { confirm } from "@inquirer/prompts";
 
-export function loadCommands(program: Command) {
+export function loadMergeInstitutionsCommand(program: Command) {
   program
     .command("merge")
     .description("Merge institutions")
     .action(async () => {
-      const aggregator = await select({
-        message: "Select an aggregator",
-        choices: Object.values(Aggregators).map((aggregator) => ({
-          name: AggregatorDisplayNameMap[aggregator],
-          value: aggregator,
-        })),
+      const aggregator = await selectAggregator();
+
+      const answer = await confirm({
+        default: false,
+        message: `Do you want to fetch a new list of institutions for ${aggregator}?`,
       });
 
-      await fetchInstitutions(aggregator);
+      if (answer) {
+        await fetchAndStoreInstitutions(aggregator);
+      } else {
+        console.log("Skipping fetching new institutions.");
+      }
     });
 }

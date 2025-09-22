@@ -1,21 +1,9 @@
-import { confirm } from "@inquirer/prompts";
 import { fetchFinicityInstitutions } from "./finicity";
 import { Aggregators } from "../shared/const/aggregators";
 import { promises } from "fs";
 import path from "path";
 
-export const fetchInstitutions = async (aggregator: string) => {
-  const answer = await confirm({
-    default: false,
-    message: `Do you want to fetch a new list of institutions for ${aggregator}?`,
-  });
-
-  if (!answer) {
-    console.log("Skipping fetching new institutions.");
-
-    return;
-  }
-
+export const fetchAndStoreInstitutions = async (aggregator: string) => {
   let institutions;
 
   switch (aggregator) {

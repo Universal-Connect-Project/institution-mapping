@@ -8,7 +8,8 @@ dotenv.config({
 });
 
 import { Command } from "commander";
-import { loadCommands } from "./commands/mergeInstitutions";
+import { loadMergeInstitutionsCommand } from "./commands/mergeInstitutions";
+import { loadFetchInstitutionsCommand } from "./commands/fetchInstitutions";
 
 const program = new Command();
 program
@@ -17,5 +18,7 @@ program
     "A tool to help match aggregator institutions to ucp institutions"
   );
 
-loadCommands(program);
+loadMergeInstitutionsCommand(program);
+loadFetchInstitutionsCommand(program);
+
 program.parse(process.argv);
