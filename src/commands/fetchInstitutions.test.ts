@@ -1,0 +1,40 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as prompts from "@inquirer/prompts";
+import { action } from "./fetchInstitutions";
+import { Aggregators } from "../shared/const/aggregators";
+import * as config from "../environment";
+import { promises } from "fs";
+import path from "path";
+import {
+  finicityInstitutionsPage1,
+  finicityInstitutionsPage2,
+} from "../shared/test/testData/finicityInstitutions";
+
+vi.mock("@inquirer/prompts", { spy: true });
+
+const finicityFilePath = path.resolve(
+  __dirname,
+  `../../aggregatorInstitutions/${Aggregators.Finicity}.json`
+);
+
+describe("fetchInstitutions", () => {
+  it("fetches institutions and stores them", async () => {
+    vi.spyOn(config, "getConfig").mockReturnValue({
+      FINICITY_APP_KEY: "fakeKey",
+      FINICITY_PARTNER_ID: "fakeId",
+      FINICITY_SECRET: "fakeSecret",
+    });
+
+    await promises.rm(finicityFilePath, { force: true });
+    vi.spyOn(prompts, "select").mockResolvedValueOnce(Aggregators.Finicity);
+
+    await action();
+
+    expect(
+      JSON.parse(await promises.readFile(finicityFilePath, "utf-8"))
+    ).toEqual([
+      ...finicityInstitutionsPage1.institutions,
+      ...finicityInstitutionsPage2.institutions,
+    ]);
+  });
+});
