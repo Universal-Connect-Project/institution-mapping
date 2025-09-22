@@ -3,7 +3,6 @@ import {
   FINICITY_PARTNER_ID,
   FINICITY_SECRET,
 } from "../environment";
-import { confirm } from "@inquirer/prompts";
 
 const fetchAccessToken = async () => {
   if (!FINICITY_APP_KEY || !FINICITY_PARTNER_ID || !FINICITY_SECRET) {
@@ -68,18 +67,7 @@ const fetchInstitutionPage = async ({
   return data;
 };
 
-export const fetchInstitutions = async () => {
-  const answer = await confirm({
-    default: false,
-    message: "Do you want to fetch a new list of institutions?",
-  });
-
-  if (!answer) {
-    console.log("Skipping fetching new institutions.");
-
-    return;
-  }
-
+export const fetchFinicityInstitutions = async () => {
   const token = await fetchAccessToken();
 
   const page1 = await fetchInstitutionPage({ page: 1, token });

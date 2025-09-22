@@ -4,7 +4,7 @@
   "description": "A tool to help match aggregator institutions to ucp institutions",
   "main": "index.ts",
   "scripts": {
-    "command": "node dist/index.js --",
+    "command": "node dist/index.js",
     "dev": "tsc --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
