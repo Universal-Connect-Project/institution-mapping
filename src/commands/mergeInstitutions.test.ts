@@ -14,7 +14,7 @@ vi.mock("@inquirer/prompts", { spy: true });
 
 const finicityFilePath = path.resolve(
   __dirname,
-  "../../aggregatorInstitutions/finicity.json"
+  `../../aggregatorInstitutions/${Aggregators.Finicity}.json`
 );
 
 describe("mergeInstitutions", () => {
@@ -28,7 +28,7 @@ describe("mergeInstitutions", () => {
     await promises.rm(finicityFilePath, { force: true });
   });
 
-  it("selects an aggregator, asks to fetch institutions and fetches and stores them on yes", async () => {
+  it("fetches institutions and stores them on yes", async () => {
     vi.spyOn(prompts, "select").mockResolvedValueOnce(Aggregators.Finicity);
     vi.spyOn(prompts, "confirm").mockResolvedValueOnce(true);
 
@@ -42,7 +42,7 @@ describe("mergeInstitutions", () => {
     ]);
   });
 
-  it("selects an aggregator, asks to fetch institutions and doesn't fetch them if not requested", async () => {
+  it("doesn't fetch institutions if not requested", async () => {
     vi.spyOn(prompts, "select").mockResolvedValueOnce(Aggregators.Finicity);
     vi.spyOn(prompts, "confirm").mockResolvedValueOnce(false);
 
