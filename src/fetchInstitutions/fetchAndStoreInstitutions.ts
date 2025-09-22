@@ -21,10 +21,11 @@ export const fetchAndStoreInstitutions = async (aggregator: string) => {
 
   console.log(`Fetched ${institutions.length} institutions from ${aggregator}`);
 
-  const writePath = path.join(
-    __dirname,
-    `../../aggregatorInstitutions/${aggregator}.json`
-  );
+  const folderPath = path.join(__dirname, "../../aggregatorInstitutions");
+
+  await promises.mkdir(folderPath, { recursive: true });
+
+  const writePath = path.join(folderPath, `/${aggregator}.json`);
 
   await promises.writeFile(writePath, JSON.stringify(institutions, null, 2));
 

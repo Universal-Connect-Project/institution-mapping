@@ -22,15 +22,17 @@ describe("fetchAndStoreInstitutions", () => {
       });
     });
 
-    it(`fetches institutions and stores them for ${Aggregators.Finicity}`, async () => {
+    it(`fetches institutions, creates a directory if it doesn't exist, and stores the institutions ${Aggregators.Finicity}`, async () => {
+      const folderPath = path.join(__dirname, "../../aggregatorInstitutions");
+
+      await promises.rmdir(folderPath, { recursive: true });
+
+      await fetchAndStoreInstitutions(Aggregators.Finicity);
+
       const finicityFilePath = path.resolve(
         __dirname,
         `../../aggregatorInstitutions/${Aggregators.Finicity}.json`
       );
-
-      await promises.rm(finicityFilePath, { force: true });
-
-      await fetchAndStoreInstitutions(Aggregators.Finicity);
 
       expect(
         JSON.parse(await promises.readFile(finicityFilePath, "utf-8"))
