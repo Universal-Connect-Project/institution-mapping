@@ -5,6 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "command": "npx tsc && node dist/index.js",
+    "copyEnv": "cp ./environment/.example.env ./environment/.env",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
