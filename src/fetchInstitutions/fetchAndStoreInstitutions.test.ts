@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as config from "../environment";
 import { fetchAndStoreInstitutions } from "./fetchAndStoreInstitutions";
 import { Aggregators } from "../shared/const/aggregators";
@@ -8,30 +8,49 @@ import {
   finicityInstitutionsPage1,
   finicityInstitutionsPage2,
 } from "../shared/test/testData/finicityInstitutions";
+import { server } from "../shared/test/testServer";
+import { http, HttpResponse } from "msw";
+import { FETCH_FINICITY_INSTITUTIONS_URL } from "./finicityInstitutions";
 
 describe("fetchAndStoreInstitutions", () => {
-  it(`fetches institutions and stores them for ${Aggregators.Finicity}`, async () => {
-    vi.spyOn(config, "getConfig").mockReturnValue({
-      FINICITY_APP_KEY: "fakeKey",
-      FINICITY_PARTNER_ID: "fakeId",
-      FINICITY_SECRET: "fakeSecret",
+  describe("finicity", () => {
+    beforeEach(() => {
+      vi.spyOn(config, "getConfig").mockReturnValue({
+        FINICITY_APP_KEY: "fakeKey",
+        FINICITY_PARTNER_ID: "fakeId",
+        FINICITY_SECRET: "fakeSecret",
+      });
     });
 
-    const finicityFilePath = path.resolve(
-      __dirname,
-      `../../aggregatorInstitutions/${Aggregators.Finicity}.json`
-    );
+    it(`fetches institutions and stores them for ${Aggregators.Finicity}`, async () => {
+      const finicityFilePath = path.resolve(
+        __dirname,
+        `../../aggregatorInstitutions/${Aggregators.Finicity}.json`
+      );
 
-    await promises.rm(finicityFilePath, { force: true });
+      await promises.rm(finicityFilePath, { force: true });
 
-    await fetchAndStoreInstitutions(Aggregators.Finicity);
+      await fetchAndStoreInstitutions(Aggregators.Finicity);
 
-    expect(
-      JSON.parse(await promises.readFile(finicityFilePath, "utf-8"))
-    ).toEqual([
-      ...finicityInstitutionsPage1.institutions,
-      ...finicityInstitutionsPage2.institutions,
-    ]);
+      expect(
+        JSON.parse(await promises.readFile(finicityFilePath, "utf-8"))
+      ).toEqual([
+        ...finicityInstitutionsPage1.institutions,
+        ...finicityInstitutionsPage2.institutions,
+      ]);
+    });
+
+    it("throws an error if no institutions are found", async () => {
+      server.use(
+        http.get(FETCH_FINICITY_INSTITUTIONS_URL, () =>
+          HttpResponse.json({ institutions: [] })
+        )
+      );
+
+      await expect(() =>
+        fetchAndStoreInstitutions(Aggregators.Finicity)
+      ).rejects.toThrow(`No institutions found for ${Aggregators.Finicity}`);
+    });
   });
 
   it("throws an error for unsupported aggregators", async () => {

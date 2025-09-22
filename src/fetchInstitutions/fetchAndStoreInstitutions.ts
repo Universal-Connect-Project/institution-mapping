@@ -15,6 +15,12 @@ export const fetchAndStoreInstitutions = async (aggregator: string) => {
       throw new Error(`Missing fetch functionality for ${aggregator}`);
   }
 
+  if (!institutions.length) {
+    throw new Error(`No institutions found for ${aggregator}`);
+  }
+
+  console.log(`Fetched ${institutions.length} institutions from ${aggregator}`);
+
   const writePath = path.join(
     __dirname,
     `../../aggregatorInstitutions/${aggregator}.json`
