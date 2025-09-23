@@ -5,7 +5,7 @@ import { selectAggregator } from "./utils";
 export const action = async () => {
   const aggregator = await selectAggregator();
 
-  await fetchAndStoreInstitutions(aggregator);
+  await fetchAndStoreInstitutions({ aggregator });
 };
 
 export function loadFetchInstitutionsCommand(program: Command) {

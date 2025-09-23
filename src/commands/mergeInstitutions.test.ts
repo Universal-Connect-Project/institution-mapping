@@ -4,18 +4,15 @@ import { action } from "./mergeInstitutions";
 import { Aggregators } from "../shared/const/aggregators";
 import * as config from "../environment";
 import { promises } from "fs";
-import path from "path";
 import {
   finicityInstitutionsPage1,
   finicityInstitutionsPage2,
 } from "../shared/test/testData/finicityInstitutions";
+import { getAggregatorInstitutionsPath } from "../shared/utils/aggregatorInstitutions";
 
 vi.mock("@inquirer/prompts", { spy: true });
 
-const finicityFilePath = path.resolve(
-  __dirname,
-  `../../aggregatorInstitutions/${Aggregators.Finicity}.json`
-);
+const finicityFilePath = getAggregatorInstitutionsPath(Aggregators.Finicity);
 
 describe("mergeInstitutions", () => {
   beforeEach(async () => {

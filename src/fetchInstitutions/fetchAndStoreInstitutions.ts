@@ -1,9 +1,16 @@
 import { fetchFinicityInstitutions } from "./finicityInstitutions";
 import { Aggregators } from "../shared/const/aggregators";
 import { promises } from "fs";
-import path from "path";
+import {
+  getAggregatorInstitutionsFolderPath,
+  getAggregatorInstitutionsPath,
+} from "../shared/utils/aggregatorInstitutions";
 
-export const fetchAndStoreInstitutions = async (aggregator: string) => {
+export const fetchAndStoreInstitutions = async ({
+  aggregator,
+}: {
+  aggregator: string;
+}) => {
   let institutions;
 
   switch (aggregator) {
@@ -21,11 +28,11 @@ export const fetchAndStoreInstitutions = async (aggregator: string) => {
 
   console.log(`Fetched ${institutions.length} institutions from ${aggregator}`);
 
-  const folderPath = path.join(__dirname, "../../aggregatorInstitutions");
+  const folderPath = getAggregatorInstitutionsFolderPath();
 
   await promises.mkdir(folderPath, { recursive: true });
 
-  const writePath = path.join(folderPath, `/${aggregator}.json`);
+  const writePath = getAggregatorInstitutionsPath(aggregator);
 
   await promises.writeFile(writePath, JSON.stringify(institutions, null, 2));
 

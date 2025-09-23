@@ -3,7 +3,6 @@ import * as config from "../environment";
 import { fetchAndStoreInstitutions } from "./fetchAndStoreInstitutions";
 import { Aggregators } from "../shared/const/aggregators";
 import { promises } from "fs";
-import path from "path";
 import {
   finicityInstitutionsPage1,
   finicityInstitutionsPage2,
@@ -11,6 +10,10 @@ import {
 import { server } from "../shared/test/testServer";
 import { http, HttpResponse } from "msw";
 import { FETCH_FINICITY_INSTITUTIONS_URL } from "./finicityInstitutions";
+import {
+  getAggregatorInstitutionsFolderPath,
+  getAggregatorInstitutionsPath,
+} from "../shared/utils/aggregatorInstitutions";
 
 describe("fetchAndStoreInstitutions", () => {
   describe("finicity", () => {
@@ -23,7 +26,7 @@ describe("fetchAndStoreInstitutions", () => {
     });
 
     it(`fetches institutions, creates a directory if it doesn't exist, and stores the institutions ${Aggregators.Finicity}`, async () => {
-      const folderPath = path.join(__dirname, "../../aggregatorInstitutions");
+      const folderPath = getAggregatorInstitutionsFolderPath();
 
       try {
         await promises.rmdir(folderPath, { recursive: true });
@@ -31,11 +34,10 @@ describe("fetchAndStoreInstitutions", () => {
         // ignore
       }
 
-      await fetchAndStoreInstitutions(Aggregators.Finicity);
+      await fetchAndStoreInstitutions({ aggregator: Aggregators.Finicity });
 
-      const finicityFilePath = path.resolve(
-        __dirname,
-        `../../aggregatorInstitutions/${Aggregators.Finicity}.json`
+      const finicityFilePath = getAggregatorInstitutionsPath(
+        Aggregators.Finicity
       );
 
       expect(
@@ -54,14 +56,14 @@ describe("fetchAndStoreInstitutions", () => {
       );
 
       await expect(() =>
-        fetchAndStoreInstitutions(Aggregators.Finicity)
+        fetchAndStoreInstitutions({ aggregator: Aggregators.Finicity })
       ).rejects.toThrow(`No institutions found for ${Aggregators.Finicity}`);
     });
   });
 
   it("throws an error for unsupported aggregators", async () => {
     await expect(
-      fetchAndStoreInstitutions("UnsupportedAggregator")
+      fetchAndStoreInstitutions({ aggregator: "UnsupportedAggregator" })
     ).rejects.toThrow("Missing fetch functionality for UnsupportedAggregator");
   });
 });
