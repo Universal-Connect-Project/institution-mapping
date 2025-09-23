@@ -82,13 +82,11 @@ export const fetchFinicityInstitutions = async () => {
   const numberOfPages = Math.ceil(found / pageSize);
 
   for (let page = 2; page < numberOfPages + 1; page++) {
-    const { institutions: currentPageInstitutions, displaying } =
+    const { institutions: currentPageInstitutions } =
       await fetchInstitutionPage({ page, token });
 
     institutions.push(...currentPageInstitutions);
   }
-
-  console.log(`Fetched ${institutions.length} institutions from Finicity`);
 
   return institutions;
 };
