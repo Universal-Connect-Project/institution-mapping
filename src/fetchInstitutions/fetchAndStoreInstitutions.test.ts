@@ -34,7 +34,9 @@ describe("fetchAndStoreInstitutions", () => {
         // ignore
       }
 
-      await fetchAndStoreInstitutions({ aggregator: Aggregators.Finicity });
+      await fetchAndStoreInstitutions({
+        aggregatorOrUcp: Aggregators.Finicity,
+      });
 
       const finicityFilePath = getAggregatorInstitutionsPath(
         Aggregators.Finicity
@@ -56,14 +58,14 @@ describe("fetchAndStoreInstitutions", () => {
       );
 
       await expect(() =>
-        fetchAndStoreInstitutions({ aggregator: Aggregators.Finicity })
+        fetchAndStoreInstitutions({ aggregatorOrUcp: Aggregators.Finicity })
       ).rejects.toThrow(`No institutions found for ${Aggregators.Finicity}`);
     });
   });
 
   it("throws an error for unsupported aggregators", async () => {
     await expect(
-      fetchAndStoreInstitutions({ aggregator: "UnsupportedAggregator" })
+      fetchAndStoreInstitutions({ aggregatorOrUcp: "UnsupportedAggregator" })
     ).rejects.toThrow("Missing fetch functionality for UnsupportedAggregator");
   });
 });

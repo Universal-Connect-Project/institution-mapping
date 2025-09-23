@@ -12,7 +12,7 @@ export const action = async () => {
   });
 
   if (answer) {
-    await fetchAndStoreInstitutions({ aggregator });
+    await fetchAndStoreInstitutions({ aggregatorOrUcp: aggregator });
   } else {
     console.log("Skipping fetching new institutions.");
   }

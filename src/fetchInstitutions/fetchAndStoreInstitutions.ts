@@ -1,38 +1,45 @@
 import { fetchFinicityInstitutions } from "./finicityInstitutions";
-import { Aggregators } from "../shared/const/aggregators";
+import { Aggregators, UCP_STRING } from "../shared/const/aggregators";
 import { promises } from "fs";
 import {
   getAggregatorInstitutionsFolderPath,
   getAggregatorInstitutionsPath,
 } from "../shared/utils/aggregatorInstitutions";
+import { fetchUcpInstitutions } from "./ucpInstitutions";
 
 export const fetchAndStoreInstitutions = async ({
-  aggregator,
+  aggregatorOrUcp,
 }: {
-  aggregator: string;
+  aggregatorOrUcp: string;
 }) => {
   let institutions;
 
-  switch (aggregator) {
+  switch (aggregatorOrUcp) {
     case Aggregators.Finicity:
       institutions = await fetchFinicityInstitutions();
       break;
 
+    case UCP_STRING:
+      institutions = await fetchUcpInstitutions();
+      break;
+
     default:
-      throw new Error(`Missing fetch functionality for ${aggregator}`);
+      throw new Error(`Missing fetch functionality for ${aggregatorOrUcp}`);
   }
 
   if (!institutions.length) {
-    throw new Error(`No institutions found for ${aggregator}`);
+    throw new Error(`No institutions found for ${aggregatorOrUcp}`);
   }
 
-  console.log(`Fetched ${institutions.length} institutions from ${aggregator}`);
+  console.log(
+    `Fetched ${institutions.length} institutions from ${aggregatorOrUcp}`
+  );
 
   const folderPath = getAggregatorInstitutionsFolderPath();
 
   await promises.mkdir(folderPath, { recursive: true });
 
-  const writePath = getAggregatorInstitutionsPath(aggregator);
+  const writePath = getAggregatorInstitutionsPath(aggregatorOrUcp);
 
   await promises.writeFile(writePath, JSON.stringify(institutions, null, 2));
 
