@@ -11,16 +11,13 @@ import {
 } from "../shared/test/testData/finicityInstitutions";
 import { server } from "../shared/test/testServer";
 import { http, HttpResponse } from "msw";
+import { fakeEnvironment } from "../shared/test/environment";
 
 describe("finicity institutions", () => {
   describe("fetchFinicityInstitutions", () => {
     describe("with valid configuration", () => {
       beforeEach(() => {
-        vi.spyOn(config, "getConfig").mockReturnValue({
-          FINICITY_APP_KEY: "fakeKey",
-          FINICITY_PARTNER_ID: "fakeId",
-          FINICITY_SECRET: "fakeSecret",
-        });
+        vi.spyOn(config, "getConfig").mockReturnValue(fakeEnvironment);
       });
 
       it("fetches institutions from Finicity and stitches the pages together", async () => {

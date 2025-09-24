@@ -4,8 +4,8 @@
   "description": "A tool to help match aggregator institutions to ucp institutions",
   "main": "index.ts",
   "scripts": {
-    "command": "npx tsc && node dist/index.js",
     "copyEnv": "cp ./environment/.example.env ./environment/.env",
+    "prod": "npx tsc && node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },

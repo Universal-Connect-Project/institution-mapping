@@ -1,11 +1,11 @@
 import { Command } from "commander";
 import { fetchAndStoreInstitutions } from "../fetchInstitutions/fetchAndStoreInstitutions";
-import { selectAggregator } from "./utils";
+import { selectAggregatorOrUcp } from "./utils";
 
 export const action = async () => {
-  const aggregator = await selectAggregator();
+  const aggregatorOrUcp = await selectAggregatorOrUcp();
 
-  await fetchAndStoreInstitutions(aggregator);
+  await fetchAndStoreInstitutions({ aggregatorOrUcp });
 };
 
 export function loadFetchInstitutionsCommand(program: Command) {
