@@ -1,6 +1,6 @@
 import { getConfig } from "../environment";
 
-export const getAccessToken = async () => {
+export const fetchAccessToken = async () => {
   const {
     AUTH0_AUDIENCE,
     AUTH0_CLIENT_ID,
@@ -31,7 +31,7 @@ export const getAccessToken = async () => {
   const response = await fetch(`https://${AUTH0_DOMAIN}/oauth/token`, props);
 
   if (!response.ok) {
-    throw new Error(`Failed to get UCP access token: ${await response.text()}`);
+    throw new Error(`Failed to fetch UCP access token: ${response.statusText}`);
   }
 
   const data = await response.json();
@@ -40,7 +40,7 @@ export const getAccessToken = async () => {
 };
 
 export const fetchUcpInstitutions = async () => {
-  const accessToken = await getAccessToken();
+  const accessToken = await fetchAccessToken();
 
   const { UCP_INSTITUTION_LIST_BASE_URL } = getConfig();
 
@@ -54,9 +54,7 @@ export const fetchUcpInstitutions = async () => {
   );
 
   if (!response.ok) {
-    throw new Error(
-      `Failed to fetch institutions from UCP: ${response.statusText}`
-    );
+    throw new Error(`Failed to fetch UCP institutions: ${response.statusText}`);
   }
 
   const data = await response.json();

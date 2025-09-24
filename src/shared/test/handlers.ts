@@ -9,16 +9,17 @@ import {
 } from "./testData/finicityInstitutions";
 import { fakeEnvironment } from "./environment";
 import { ucpInstitutions } from "./testData/ucpInstitutions";
+import { ucpAccessToken } from "./testData/ucpAccessToken";
 
-const AUTH0_TOKEN_URL = `https://${fakeEnvironment.AUTH0_DOMAIN}/oauth/token`;
-const FETCH_UCP_INSTITUTIONS_URL = `${fakeEnvironment.UCP_INSTITUTION_LIST_BASE_URL}/institutions/cacheList/download`;
+export const AUTH0_TOKEN_URL = `https://${fakeEnvironment.AUTH0_DOMAIN}/oauth/token`;
+export const FETCH_UCP_INSTITUTIONS_URL = `${fakeEnvironment.UCP_INSTITUTION_LIST_BASE_URL}/institutions/cacheList/download`;
 
 export const handlers = [
   http.post(AUTH0_TOKEN_URL, () =>
     HttpResponse.json({ access_token: "testToken" })
   ),
   http.post(FETCH_FINICITY_ACCESS_TOKEN_URL, () =>
-    HttpResponse.json({ token: "testToken" })
+    HttpResponse.json(ucpAccessToken)
   ),
   http.get(FETCH_FINICITY_INSTITUTIONS_URL, ({ request }) => {
     const url = new URL(request.url);
