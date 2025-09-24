@@ -3,7 +3,7 @@ import { getConfig } from "../environment";
 export const FETCH_FINICITY_ACCESS_TOKEN_URL =
   "https://api.finicity.com/aggregation/v2/partners/authentication";
 
-export const fetchAccessToken = async () => {
+const fetchAccessToken = async () => {
   const { FINICITY_APP_KEY, FINICITY_PARTNER_ID, FINICITY_SECRET } =
     getConfig();
 
