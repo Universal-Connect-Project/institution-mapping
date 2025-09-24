@@ -4,7 +4,6 @@ import { normalizeInstitutionName } from "./match";
 describe("match institutions", () => {
   describe("normalizeInstitutionName", () => {
     it("should normalize institution names", () => {
-      // federal credit union|fcu|credit union|cu|national bank|state bank|community bank|savings bank|trust company|corp|corporation|inc|llc
       const testCases = [
         [" Federal Credit Union Test ", "test"],
         ["Test FCU", "test"],
@@ -26,7 +25,7 @@ describe("match institutions", () => {
       }
     });
 
-    it("keeps bank of, in, and for", () => {
+    it("keeps bank of, in, and for, but not bank", () => {
       const testCases = [
         ["Bank of America", "bank of america"],
         ["Bank for Savings", "bank for savings"],
