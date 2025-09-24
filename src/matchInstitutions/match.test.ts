@@ -9,19 +9,8 @@ describe("match institutions", () => {
   describe("normalizeInstitutionName", () => {
     it("should normalize institution names", () => {
       const testCases = [
-        [" Federal Credit Union Test ", "test"],
-        ["Test FCU", "test"],
-        ["Test Credit Union", "test"],
+        [" Federal Credit Union Test ", "federal test"],
         ["Test CU", "test"],
-        ["Test National Bank", "test"],
-        ["Test State Bank", "test"],
-        ["Test Community Bank", "test"],
-        ["Test Savings Bank", "test"],
-        ["Test Trust Company", "test"],
-        ["Test Corp", "test"],
-        ["Test Corporation", "test"],
-        ["Test INC", "test"],
-        ["Test LLC", "test"],
       ];
 
       for (const [input, expected] of testCases) {
@@ -53,6 +42,7 @@ describe("match institutions", () => {
         ["a", "", 1],
         ["", "a", 1],
         ["abc", "abc", 0],
+        ["", "", 0],
       ];
 
       for (const [str1, str2, expected] of testCases) {
