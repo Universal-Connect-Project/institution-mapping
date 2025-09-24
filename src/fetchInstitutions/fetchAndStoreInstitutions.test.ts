@@ -14,15 +14,12 @@ import {
   getAggregatorInstitutionsFolderPath,
   getAggregatorInstitutionsPath,
 } from "../shared/utils/aggregatorInstitutions";
+import { fakeEnvironment } from "../shared/test/environment";
 
 describe("fetchAndStoreInstitutions", () => {
   describe("finicity", () => {
     beforeEach(() => {
-      vi.spyOn(config, "getConfig").mockReturnValue({
-        FINICITY_APP_KEY: "fakeKey",
-        FINICITY_PARTNER_ID: "fakeId",
-        FINICITY_SECRET: "fakeSecret",
-      });
+      vi.spyOn(config, "getConfig").mockReturnValue(fakeEnvironment);
     });
 
     it(`fetches institutions, creates a directory if it doesn't exist, and stores the institutions ${Aggregators.Finicity}`, async () => {

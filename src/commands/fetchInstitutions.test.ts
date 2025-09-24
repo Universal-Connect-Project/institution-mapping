@@ -9,6 +9,7 @@ import {
   finicityInstitutionsPage2,
 } from "../shared/test/testData/finicityInstitutions";
 import { getAggregatorInstitutionsPath } from "../shared/utils/aggregatorInstitutions";
+import { fakeEnvironment } from "../shared/test/environment";
 
 vi.mock("@inquirer/prompts", { spy: true });
 
@@ -16,11 +17,7 @@ const finicityFilePath = getAggregatorInstitutionsPath(Aggregators.Finicity);
 
 describe("fetchInstitutions", () => {
   it("fetches institutions and stores them", async () => {
-    vi.spyOn(config, "getConfig").mockReturnValue({
-      FINICITY_APP_KEY: "fakeKey",
-      FINICITY_PARTNER_ID: "fakeId",
-      FINICITY_SECRET: "fakeSecret",
-    });
+    vi.spyOn(config, "getConfig").mockReturnValue(fakeEnvironment);
 
     await promises.rm(finicityFilePath, { force: true });
     vi.spyOn(prompts, "select").mockResolvedValueOnce(Aggregators.Finicity);
