@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { calculateEditDistance, normalizeInstitutionName } from "./match";
+import {
+  calculateEditDistance,
+  calculateSimilarity,
+  normalizeInstitutionName,
+} from "./match";
 
 describe("match institutions", () => {
   describe("normalizeInstitutionName", () => {
@@ -53,6 +57,23 @@ describe("match institutions", () => {
 
       for (const [str1, str2, expected] of testCases) {
         expect(calculateEditDistance(str1, str2)).toBe(expected);
+      }
+    });
+  });
+
+  describe("calculateSimilarity", () => {
+    it("should calculate similarity between two strings", () => {
+      const testCases: [string, string, number][] = [
+        ["kitten", "sitting", (7 - 3) / 7],
+        ["flaw", "lawn", 0.5],
+        ["", "", 1.0],
+        ["a", "", 0.0],
+        ["", "a", 0.0],
+        ["abc", "abc", 1.0],
+      ];
+
+      for (const [str1, str2, expected] of testCases) {
+        expect(calculateSimilarity(str1, str2)).toBeCloseTo(expected);
       }
     });
   });
