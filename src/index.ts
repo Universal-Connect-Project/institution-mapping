@@ -3,7 +3,10 @@ import dotenv from "dotenv";
 import path from "path";
 
 dotenv.config({
-  path: path.resolve(__dirname, "../environment/.env"),
+  path: [
+    path.resolve(__dirname, "../environment/.env"),
+    path.resolve(__dirname, "../environment/sharedProduction.env"),
+  ],
   quiet: true,
 });
 
