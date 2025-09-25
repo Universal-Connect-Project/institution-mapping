@@ -3,6 +3,7 @@ import {
   calculateEditDistance,
   calculateNameScore,
   calculateSimilarity,
+  calculateUrlScore,
   extractDomain,
   normalizeInstitutionName,
   normalizeUrl,
@@ -151,6 +152,36 @@ describe("match institutions", () => {
       for (const [input, expected] of testCases) {
         expect(extractDomain(normalizeUrl(input))).toBe(expected);
       }
+    });
+  });
+
+  describe("calculateUrlScore", () => {
+    it("returns 1 if the normalized URLs are identical", () => {
+      expect(calculateUrlScore("http://www.example.com", "example.com")).toBe(
+        1.0
+      );
+    });
+
+    it("uses a similarity score of the normalized URLs if they are closer than the domains", () => {
+      const score = calculateUrlScore(
+        "http://subdomain.example.com",
+        "subdomainz.example.com"
+      );
+      expect(score).toBeCloseTo(0.94);
+    });
+
+    it("multiplies the similarity score by .9 if the domains are closer than the regular urls", () => {
+      const score = calculateUrlScore(
+        "http://subdomain.example.com",
+        "example.com"
+      );
+      expect(score).toBe(0.9);
+    });
+
+    it("returns 0 if either URL is missing", () => {
+      expect(calculateUrlScore("", "example.com")).toBe(0);
+      expect(calculateUrlScore("http://example.com", "")).toBe(0);
+      expect(calculateUrlScore("", "")).toBe(0);
     });
   });
 });
