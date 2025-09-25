@@ -67,6 +67,10 @@ export const calculateNameScore = (
   aggregatorInstitutionName: string,
   ucpInstitutionName: string
 ) => {
+  if (!aggregatorInstitutionName || !ucpInstitutionName) {
+    return 0;
+  }
+
   const normalizedAggregatorInstitutionName = normalizeInstitutionName(
     aggregatorInstitutionName
   );
@@ -157,4 +161,74 @@ export const calculateUrlScore = (aggregatorUrl: string, ucpUrl: string) => {
   const domainSimilarity = calculateSimilarity(plaidDomain, ucpDomain) * 0.9;
 
   return similarity >= domainSimilarity ? similarity : domainSimilarity;
+};
+
+interface AggregatorInstitution {
+  name?: string;
+  url?: string;
+}
+
+export const findPotentialMatches = (
+  aggregatorInstitution: AggregatorInstitution,
+  ucpInstitutions: any[]
+) => {
+  const maxResults = 5;
+
+  const matches = [];
+
+  for (const ucpInst of ucpInstitutions) {
+    const scores = {
+      ...(aggregatorInstitution.name
+        ? { name: calculateNameScore(aggregatorInstitution.name, ucpInst.name) }
+        : {}),
+      ...(aggregatorInstitution.url
+        ? { url: calculateUrlScore(aggregatorInstitution.url, ucpInst.url) }
+        : {}),
+    };
+
+    const sortedScores = Object.values(scores).sort((a, b) => b - a);
+
+    let topScoresAverage = sortedScores?.[0];
+
+    if (sortedScores.length >= 2) {
+      topScoresAverage = (sortedScores[0] + sortedScores[1]) / 2;
+    }
+
+    const averageTotalScore =
+      sortedScores.reduce((accumulator, current) => accumulator + current, 0) /
+      sortedScores.length;
+
+    const matchTypes = [];
+
+    if (scores.name) {
+      if (scores.name === 1.0) {
+        matchTypes.push("nameExactOriginal");
+      } else if (scores.name >= 0.95) {
+        matchTypes.push("nameExactNormalized");
+      } else {
+        matchTypes.push("nameSimilarity");
+      }
+    }
+
+    if (scores.url) {
+      if (scores.url >= 0.95) {
+        matchTypes.push("urlExactNormalized");
+      } else {
+        matchTypes.push("urlDomainSimilarity");
+      }
+    }
+
+    if (topScoresAverage > 0.49) {
+      matches.push({
+        institution: ucpInst,
+        score: topScoresAverage,
+        averageTotalScore,
+        matchTypes: matchTypes,
+        scoreBreakdown: scores,
+      });
+    }
+  }
+
+  // Sort by score (highest first) and return top results
+  return matches.sort((a, b) => b.score - a.score).slice(0, maxResults);
 };

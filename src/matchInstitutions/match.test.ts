@@ -5,6 +5,7 @@ import {
   calculateSimilarity,
   calculateUrlScore,
   extractDomain,
+  findPotentialMatches,
   normalizeInstitutionName,
   normalizeUrl,
 } from "./match";
@@ -73,6 +74,12 @@ describe("match institutions", () => {
   });
 
   describe("calculateNameScore", () => {
+    it("returns 0 if either name is missing", () => {
+      expect(calculateNameScore("", "Test")).toBe(0);
+      expect(calculateNameScore("Test", "")).toBe(0);
+      expect(calculateNameScore("", "")).toBe(0);
+    });
+
     it("returns 1 if the trimmed and lowercased names are identical", () => {
       expect(calculateNameScore("  Bank of America  ", "bank of america")).toBe(
         1.0
@@ -156,6 +163,12 @@ describe("match institutions", () => {
   });
 
   describe("calculateUrlScore", () => {
+    it("returns 0 if either URL is missing", () => {
+      expect(calculateUrlScore("", "http://example.com")).toBe(0);
+      expect(calculateUrlScore("http://example.com", "")).toBe(0);
+      expect(calculateUrlScore("", "")).toBe(0);
+    });
+
     it("returns 1 if the normalized URLs are identical", () => {
       expect(calculateUrlScore("http://www.example.com", "example.com")).toBe(
         1.0
@@ -177,11 +190,126 @@ describe("match institutions", () => {
       );
       expect(score).toBe(0.9);
     });
+  });
 
-    it("returns 0 if either URL is missing", () => {
-      expect(calculateUrlScore("", "example.com")).toBe(0);
-      expect(calculateUrlScore("http://example.com", "")).toBe(0);
-      expect(calculateUrlScore("", "")).toBe(0);
+  describe("findPotentialMatches", () => {
+    it("finds all the different match types and sorts by score", () => {
+      const aggregatorInstitution = {
+        name: "Bank of America",
+        url: "http://www.bankofamerica.com",
+      };
+
+      const ucpInstitutions = [
+        {
+          name: "Bank of America",
+          url: "http://www.bankofamerica.com",
+        },
+        {
+          name: "Bank of America CU",
+          url: "test",
+        },
+        {
+          name: "Wells Fargo",
+          url: "http://www.wellsfargo.com",
+        },
+        {
+          name: "Bank of Amer",
+          url: "http://www.bankofamer.com",
+        },
+      ];
+
+      const [firstMatch, secondMatch, thirdMatch] = findPotentialMatches(
+        aggregatorInstitution,
+        ucpInstitutions
+      );
+
+      expect(firstMatch.institution.name).toBe("Bank of America");
+      expect(firstMatch.score).toBe(1.0);
+      expect(firstMatch.averageTotalScore).toBe(1.0);
+      expect(firstMatch.matchTypes).toContain("nameExactOriginal");
+      expect(firstMatch.matchTypes).toContain("urlExactNormalized");
+
+      expect(secondMatch.institution.name).toBe("Bank of Amer");
+      expect(secondMatch.score).toBeCloseTo(0.588);
+      expect(secondMatch.averageTotalScore).toBeCloseTo(0.588);
+      expect(secondMatch.matchTypes).toContain("nameSimilarity");
+      expect(secondMatch.matchTypes).toContain("urlDomainSimilarity");
+
+      expect(thirdMatch.institution.name).toBe("Bank of America CU");
+      expect(thirdMatch.score).toBeCloseTo(0.5);
+      expect(thirdMatch.averageTotalScore).toBeCloseTo(0.5044);
+      expect(thirdMatch.matchTypes).toContain("nameExactNormalized");
+      expect(thirdMatch.matchTypes).toContain("urlDomainSimilarity");
+    });
+
+    it("doesn't include matches with a score under .5", () => {
+      const aggregatorInstitution = {
+        name: "Bank of America",
+        url: "http://www.bankofamerica.com",
+      };
+
+      const ucpInstitutions = [
+        {
+          name: "Wells Fargo",
+          url: "http://www.wellsfargo.com",
+        },
+        {
+          name: "Chase",
+          url: "http://www.chase.com",
+        },
+      ];
+
+      const matches = findPotentialMatches(
+        aggregatorInstitution,
+        ucpInstitutions
+      );
+
+      expect(matches.length).toBe(0);
+    });
+
+    it("only returns 5 matches max", () => {
+      const aggregatorInstitution = {
+        name: "Test Institution",
+        url: "http://www.testinstitution.com",
+      };
+
+      const ucpInstitutions = [];
+
+      for (let i = 0; i < 10; i++) {
+        ucpInstitutions.push({
+          name: `Test Institution ${i}`,
+          url: `http://www.testinstitution${i}.com`,
+        });
+      }
+
+      const matches = findPotentialMatches(
+        aggregatorInstitution,
+        ucpInstitutions
+      );
+
+      expect(matches.length).toBe(5);
+    });
+
+    it("handles missing names and urls", () => {
+      const aggregatorInstitution = {
+        name: "Bank of America",
+      };
+
+      const ucpInstitutions = [
+        {
+          url: "http://www.bankofamerica.com",
+        },
+        {
+          name: "Chase",
+        },
+      ];
+
+      const matches = findPotentialMatches(
+        aggregatorInstitution,
+        ucpInstitutions
+      );
+
+      expect(matches.length).toBe(0);
     });
   });
 });
