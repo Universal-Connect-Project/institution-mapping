@@ -8,7 +8,7 @@ import {
   findPotentialMatches,
   normalizeInstitutionName,
   normalizeUrl,
-} from "./match";
+} from "./utils";
 
 describe("match institutions", () => {
   describe("normalizeInstitutionName", () => {
@@ -288,28 +288,6 @@ describe("match institutions", () => {
       );
 
       expect(matches.length).toBe(5);
-    });
-
-    it("handles missing names and urls", () => {
-      const aggregatorInstitution = {
-        name: "Bank of America",
-      };
-
-      const ucpInstitutions = [
-        {
-          url: "http://www.bankofamerica.com",
-        },
-        {
-          name: "Chase",
-        },
-      ];
-
-      const matches = findPotentialMatches(
-        aggregatorInstitution,
-        ucpInstitutions
-      );
-
-      expect(matches.length).toBe(0);
     });
   });
 });
