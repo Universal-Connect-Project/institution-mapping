@@ -3,7 +3,9 @@ import {
   calculateEditDistance,
   calculateNameScore,
   calculateSimilarity,
+  extractDomain,
   normalizeInstitutionName,
+  normalizeUrl,
 } from "./match";
 
 describe("match institutions", () => {
@@ -111,6 +113,44 @@ describe("match institutions", () => {
           "abcdefghijklmnop Personal"
         )
       ).toBeCloseTo(0.608);
+    });
+  });
+
+  describe("normalizeUrl", () => {
+    it("should remove http, https, www, and common TLDs", () => {
+      const testCases = [
+        ["http://www.example.com", "example"],
+        ["https://example.net", "example"],
+        ["http://example.org", "example"],
+        ["www.example.com", "example"],
+        ["example.com", "example"],
+        ["example.net", "example"],
+        ["example.org", "example"],
+        ["example", "example"],
+      ];
+
+      for (const [input, expected] of testCases) {
+        expect(normalizeUrl(input)).toBe(expected);
+      }
+    });
+  });
+
+  describe("extractDomain", () => {
+    it("should extract the domain from a normalized URL", () => {
+      const testCases = [
+        ["http://www.example.com/path", "example"],
+        ["https://subdomain.subdomain.example.net/anotherpath", "example"],
+        ["http://example.org", "example"],
+        ["www.example.com", "example"],
+        ["example.com/path", "example"],
+        ["example.net", "example"],
+        ["example.org/some/page", "example"],
+        ["example", "example"],
+      ];
+
+      for (const [input, expected] of testCases) {
+        expect(extractDomain(normalizeUrl(input))).toBe(expected);
+      }
     });
   });
 });

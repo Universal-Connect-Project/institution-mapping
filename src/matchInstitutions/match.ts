@@ -77,17 +77,14 @@ export const calculateNameScore = (
   const normalizedUcpName = normalizeInstitutionName(ucpInstitutionName);
   const trimmedUcpName = ucpInstitutionName.toLowerCase().trim();
 
-  // Exact match on original names (highest priority)
   if (trimmedAggregatorInstitutionName === trimmedUcpName) {
     return 1.0;
   }
 
-  // Exact match on normalized names
   if (normalizedAggregatorInstitutionName === normalizedUcpName) {
     return 0.95;
   }
 
-  // Calculate similarity score for partial matches
   if (normalizedAggregatorInstitutionName && normalizedUcpName) {
     let similarity = calculateSimilarity(
       normalizedAggregatorInstitutionName,
@@ -103,17 +100,61 @@ export const calculateNameScore = (
       similarity -= 0.1;
     }
 
-    // Only return similarity scores above a threshold
     if (similarity >= 0.5) {
       return similarity;
     } else if (
       normalizedAggregatorInstitutionName.startsWith(normalizedUcpName) ||
       normalizedUcpName.startsWith(normalizedAggregatorInstitutionName)
     ) {
-      // If one name starts with the other, give a small boost
       return 0.4;
     }
   }
 
   return 0;
+};
+
+export const extractDomain = (url: string): string => {
+  let domain = `${url}`;
+
+  if (domain.includes(".")) {
+    domain = domain.split(".")?.pop() as string;
+  }
+
+  if (domain.includes("/")) {
+    domain = domain.split("/")[0];
+  }
+
+  return domain;
+};
+
+export const normalizeUrl = (url: string): string => {
+  return url
+    .toLowerCase()
+    .trim()
+    .replace(/http[s]?:\/\//, "")
+    .replace(/\.com/, "")
+    .replace(/\.net/, "")
+    .replace(/\.org/, "")
+    .replace(/www\./, "");
+};
+
+export const calculateUrlScore = (aggregatorUrl: string, ucpUrl: string) => {
+  if (!aggregatorUrl || !ucpUrl) {
+    return 0;
+  }
+
+  const normalizedAggregatorUrl = normalizeUrl(aggregatorUrl);
+  const normalizedUcpUrl = normalizeUrl(ucpUrl);
+
+  const similarity = calculateSimilarity(
+    normalizedAggregatorUrl,
+    normalizedUcpUrl
+  );
+
+  const plaidDomain = extractDomain(normalizedAggregatorUrl);
+  const ucpDomain = extractDomain(normalizedUcpUrl);
+
+  const domainSimilarity = calculateSimilarity(plaidDomain, ucpDomain) * 0.9;
+
+  return similarity >= domainSimilarity ? similarity : domainSimilarity;
 };
