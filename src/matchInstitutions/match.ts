@@ -63,4 +63,57 @@ export const calculateSimilarity = (str1: string, str2: string): number => {
   return (longer.length - editDistance) / longer.length;
 };
 
-// For calculate name score we need to modify the score if there is a personal vs business
+export const calculateNameScore = (
+  aggregatorInstitutionName: string,
+  ucpInstitutionName: string
+) => {
+  const normalizedAggregatorInstitutionName = normalizeInstitutionName(
+    aggregatorInstitutionName
+  );
+  const trimmedAggregatorInstitutionName = aggregatorInstitutionName
+    .toLowerCase()
+    .trim();
+
+  const normalizedUcpName = normalizeInstitutionName(ucpInstitutionName);
+  const trimmedUcpName = ucpInstitutionName.toLowerCase().trim();
+
+  // Exact match on original names (highest priority)
+  if (trimmedAggregatorInstitutionName === trimmedUcpName) {
+    return 1.0;
+  }
+
+  // Exact match on normalized names
+  if (normalizedAggregatorInstitutionName === normalizedUcpName) {
+    return 0.95;
+  }
+
+  // Calculate similarity score for partial matches
+  if (normalizedAggregatorInstitutionName && normalizedUcpName) {
+    let similarity = calculateSimilarity(
+      normalizedAggregatorInstitutionName,
+      normalizedUcpName
+    );
+
+    if (
+      (normalizedAggregatorInstitutionName.includes("business") &&
+        normalizedUcpName.includes("personal")) ||
+      (normalizedAggregatorInstitutionName.includes("personal") &&
+        normalizedUcpName.includes("business"))
+    ) {
+      similarity -= 0.1;
+    }
+
+    // Only return similarity scores above a threshold
+    if (similarity >= 0.5) {
+      return similarity;
+    } else if (
+      normalizedAggregatorInstitutionName.startsWith(normalizedUcpName) ||
+      normalizedUcpName.startsWith(normalizedAggregatorInstitutionName)
+    ) {
+      // If one name starts with the other, give a small boost
+      return 0.4;
+    }
+  }
+
+  return 0;
+};
