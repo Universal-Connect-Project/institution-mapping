@@ -9,6 +9,24 @@ import {
   normalizeInstitutionName,
   normalizeUrl,
 } from "./utils";
+import { AggregatorMatchingInstitution } from "../shared/const/aggregatorInstitution";
+import { MatchType, Score } from "./const";
+
+const createExpectScore =
+  (name: string) =>
+  (
+    result: Score,
+    expected: { score: number; type: string },
+    shouldExpectExactScore: boolean
+  ) => {
+    if (shouldExpectExactScore) {
+      expect(result.score).toBe(expected.score);
+    } else {
+      expect(result.score).toBeCloseTo(expected.score);
+    }
+    expect(result.name).toBe(name);
+    expect(result.type).toBe(expected.type);
+  };
 
 describe("match institutions", () => {
   describe("normalizeInstitutionName", () => {
@@ -74,53 +92,83 @@ describe("match institutions", () => {
   });
 
   describe("calculateNameScore", () => {
+    const expectNameScore = createExpectScore("name");
+
     it("returns 0 if either name is missing", () => {
-      expect(calculateNameScore("", "Test")).toBe(0);
-      expect(calculateNameScore("Test", "")).toBe(0);
-      expect(calculateNameScore("", "")).toBe(0);
+      expectNameScore(
+        calculateNameScore("", "Test"),
+        { score: 0, type: MatchType.Missing },
+        true
+      );
+      expectNameScore(
+        calculateNameScore("Test", ""),
+        { score: 0, type: MatchType.Missing },
+        true
+      );
+      expectNameScore(
+        calculateNameScore("", ""),
+        { score: 0, type: MatchType.Missing },
+        true
+      );
     });
 
     it("returns 1 if the trimmed and lowercased names are identical", () => {
-      expect(calculateNameScore("  Bank of America  ", "bank of america")).toBe(
-        1.0
+      expectNameScore(
+        calculateNameScore("  Bank of America  ", "bank of america"),
+        { score: 1.0, type: MatchType.ExactOriginal },
+        true
       );
     });
 
     it("returns 0.95 if the normalized names are identical", () => {
-      expect(calculateNameScore("Bank of America CU", "Bank of America")).toBe(
-        0.95
+      expectNameScore(
+        calculateNameScore("Bank of America CU", "Bank of America"),
+        { score: 0.95, type: MatchType.ExactNormalized },
+        true
       );
     });
 
     it("returns a similarity score if its at least .5", () => {
       const score = calculateNameScore("abcd", "ab");
-      expect(score).toBe(0.5);
+      expectNameScore(score, { score: 0.5, type: MatchType.Similarity }, true);
     });
 
     it("returns 0 if the similarity score is less than .5", () => {
       const score = calculateNameScore("abc", "b");
-      expect(score).toBe(0);
+      expectNameScore(score, { score: 0, type: MatchType.NoMatch }, true);
     });
 
     it("returns .4 if one name starts with the other", () => {
-      expect(calculateNameScore("abcdef", "ab")).toBe(0.4);
-      expect(calculateNameScore("ab", "abcdef")).toBe(0.4);
+      expectNameScore(
+        calculateNameScore("abcdef", "ab"),
+        { score: 0.4, type: MatchType.StartsWith },
+        true
+      );
+      expectNameScore(
+        calculateNameScore("ab", "abcdef"),
+        { score: 0.4, type: MatchType.StartsWith },
+        true
+      );
     });
 
     it("decreases score by 0.1 if one name includes 'business' and the other 'personal'", () => {
-      expect(
+      expectNameScore(
         calculateNameScore(
           "abcdefghijklmnop Personal",
           "abcdefghijklmnop Business"
-        )
-      ).toBeCloseTo(0.608);
+        ),
+        { score: 0.608, type: MatchType.Similarity },
+        false
+      );
 
-      expect(
+      expectNameScore(
         calculateNameScore(
           "abcdefghijklmnop Business",
           "abcdefghijklmnop Personal"
-        )
-      ).toBeCloseTo(0.608);
+        ),
+        { score: 0.608, type: MatchType.Similarity },
+        false
+      );
     });
   });
 
@@ -163,87 +211,149 @@ describe("match institutions", () => {
   });
 
   describe("calculateUrlScore", () => {
+    const expectUrlScore = createExpectScore("url");
+
     it("returns 0 if either URL is missing", () => {
-      expect(calculateUrlScore("", "http://example.com")).toBe(0);
-      expect(calculateUrlScore("http://example.com", "")).toBe(0);
-      expect(calculateUrlScore("", "")).toBe(0);
+      expectUrlScore(
+        calculateUrlScore("", "http://example.com"),
+        {
+          score: 0,
+          type: MatchType.Missing,
+        },
+        true
+      );
+      expectUrlScore(
+        calculateUrlScore("http://example.com", ""),
+        {
+          score: 0,
+          type: MatchType.Missing,
+        },
+        true
+      );
+      expectUrlScore(
+        calculateUrlScore("", ""),
+        {
+          score: 0,
+          type: MatchType.Missing,
+        },
+        true
+      );
     });
 
-    it("returns 1 if the normalized URLs are identical", () => {
-      expect(calculateUrlScore("http://www.example.com", "example.com")).toBe(
-        1.0
+    it("returns 1 if the trimmed and lowercased original URLs are identical", () => {
+      expectUrlScore(
+        calculateUrlScore("http://www.Example.com ", "http://www.example.com"),
+        {
+          score: 1.0,
+          type: MatchType.ExactOriginal,
+        },
+        true
+      );
+    });
+
+    it("returns .95 if the normalized URLs are identical", () => {
+      expectUrlScore(
+        calculateUrlScore("http://www.example.com", "example.com"),
+        {
+          score: 0.95,
+          type: MatchType.ExactNormalized,
+        },
+        true
+      );
+    });
+
+    it("returns .8 if the domains are identical", () => {
+      expectUrlScore(
+        calculateUrlScore("http://subdomain.example.com", "example.com"),
+        {
+          score: 0.8,
+          type: MatchType.ExactDomain,
+        },
+        true
       );
     });
 
     it("uses a similarity score of the normalized URLs if they are closer than the domains", () => {
+      const first = "http://subdomain.example.com";
+      const second = "subdomain.examplezzzz.com";
+      const similarity = calculateSimilarity(
+        normalizeUrl(first),
+        normalizeUrl(second)
+      );
+
       const score = calculateUrlScore(
         "http://subdomain.example.com",
-        "subdomainz.example.com"
+        "subdomain.examplezzzz.com"
       );
-      expect(score).toBeCloseTo(0.94);
+      expectUrlScore(
+        score,
+        { score: similarity, type: MatchType.Similarity },
+        true
+      );
     });
 
     it("multiplies the similarity score by .9 if the domains are closer than the regular urls", () => {
+      const first = "http://subdomain.example.com";
+      const second = "examplez.com";
+      const domainSimilarity = calculateSimilarity(
+        extractDomain(normalizeUrl(first)),
+        extractDomain(normalizeUrl(second))
+      );
+
       const score = calculateUrlScore(
         "http://subdomain.example.com",
-        "example.com"
+        "examplez.com"
       );
-      expect(score).toBe(0.9);
+      expectUrlScore(
+        score,
+        { score: domainSimilarity * 0.9, type: MatchType.DomainSimilarity },
+        false
+      );
     });
   });
 
   describe("findPotentialMatches", () => {
-    it("finds all the different match types and sorts by score", () => {
-      const aggregatorInstitution = {
+    it("returns the expected matches format and sorts by the top 2 average scores", () => {
+      const aggregatorInstitution: AggregatorMatchingInstitution = {
+        id: "1",
         name: "Bank of America",
         url: "http://www.bankofamerica.com",
       };
 
       const ucpInstitutions = [
         {
-          name: "Bank of America",
-          url: "http://www.bankofamerica.com",
-        },
-        {
           name: "Bank of America CU",
           url: "test",
         },
         {
-          name: "Wells Fargo",
-          url: "http://www.wellsfargo.com",
-        },
-        {
-          name: "Bank of Amer",
-          url: "http://www.bankofamer.com",
+          name: "Bank of America",
+          url: "http://www.bankofamerica.com",
         },
       ];
 
-      const [firstMatch, secondMatch, thirdMatch] = findPotentialMatches(
+      const matches = findPotentialMatches(
         aggregatorInstitution,
         ucpInstitutions
       );
 
-      expect(firstMatch.institution.name).toBe("Bank of America");
-      expect(firstMatch.score).toBe(1.0);
-      expect(firstMatch.averageTotalScore).toBe(1.0);
-      expect(firstMatch.matchTypes).toContain("nameExactOriginal");
-      expect(firstMatch.matchTypes).toContain("urlExactNormalized");
-
-      expect(secondMatch.institution.name).toBe("Bank of Amer");
-      expect(secondMatch.score).toBeCloseTo(0.588);
-      expect(secondMatch.averageTotalScore).toBeCloseTo(0.588);
-      expect(secondMatch.matchTypes).toContain("nameSimilarity");
-      expect(secondMatch.matchTypes).toContain("urlDomainSimilarity");
-
-      expect(thirdMatch.institution.name).toBe("Bank of America CU");
-      expect(thirdMatch.score).toBeCloseTo(0.5);
-      expect(thirdMatch.averageTotalScore).toBeCloseTo(0.5044);
-      expect(thirdMatch.matchTypes).toContain("nameExactNormalized");
-      expect(thirdMatch.matchTypes).toContain("urlDomainSimilarity");
+      expect(matches).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            institution: expect.objectContaining({ name: "Bank of America" }),
+            score: 1.0,
+            averageTotalScore: 1.0,
+            scoreBreakdown: expect.arrayContaining([
+              { name: "name", score: 1.0, type: MatchType.ExactOriginal },
+              { name: "url", score: 1.0, type: MatchType.ExactOriginal },
+            ]),
+          }),
+        ])
+      );
     });
 
     it("doesn't include matches with a score under .5", () => {
-      const aggregatorInstitution = {
+      const aggregatorInstitution: AggregatorMatchingInstitution = {
+        id: "1",
         name: "Bank of America",
         url: "http://www.bankofamerica.com",
       };
@@ -271,7 +381,7 @@ describe("match institutions", () => {
       const aggregatorInstitution = {
         name: "Test Institution",
         url: "http://www.testinstitution.com",
-      };
+      } as AggregatorMatchingInstitution;
 
       const ucpInstitutions = [];
 

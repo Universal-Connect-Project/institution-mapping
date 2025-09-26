@@ -3,6 +3,7 @@ import { fetchAndStoreInstitutions } from "../fetchInstitutions/fetchAndStoreIns
 import { selectAggregator } from "./utils";
 import { confirm } from "@inquirer/prompts";
 import { UCP_STRING } from "../shared/const/aggregators";
+import { match } from "../matchInstitutions/match";
 
 export const action = async () => {
   const aggregator = await selectAggregator();
@@ -28,6 +29,8 @@ export const action = async () => {
   } else {
     console.log("Skipping fetching new institutions.");
   }
+
+  await match(aggregator);
 };
 
 export function loadMergeInstitutionsCommand(program: Command) {

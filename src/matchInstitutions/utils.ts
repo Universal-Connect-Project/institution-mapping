@@ -1,3 +1,7 @@
+import { AggregatorMatchingInstitution } from "../shared/const/aggregatorInstitution";
+import { UCPInstitution } from "../shared/const/ucp";
+import { MatchType, Score } from "./const";
+
 export function normalizeInstitutionName(name: string): string {
   return (
     name
@@ -43,16 +47,8 @@ export const calculateEditDistance = (str1: string, str2: string): number => {
 };
 
 export const calculateSimilarity = (str1: string, str2: string): number => {
-  const stripped1 = str1
-    .toLowerCase()
-    .replace(/ /g, "")
-    .replace(/\-/g, "")
-    .replace(/(ca)/g, "canada");
-  const stripped2 = str2
-    .toLowerCase()
-    .replace(/ /g, "")
-    .replace(/\-/g, "")
-    .replace(/(ca)/g, "canada");
+  const stripped1 = str1.toLowerCase().replace(/ /g, "").replace(/\-/g, "");
+  const stripped2 = str2.toLowerCase().replace(/ /g, "").replace(/\-/g, "");
 
   const longer = stripped1.length > stripped2.length ? stripped1 : stripped2;
 
@@ -66,9 +62,11 @@ export const calculateSimilarity = (str1: string, str2: string): number => {
 export const calculateNameScore = (
   aggregatorInstitutionName: string,
   ucpInstitutionName: string
-) => {
+): Score => {
+  const scoreName = "name";
+
   if (!aggregatorInstitutionName || !ucpInstitutionName) {
-    return 0;
+    return { name: scoreName, score: 0, type: MatchType.Missing };
   }
 
   const normalizedAggregatorInstitutionName = normalizeInstitutionName(
@@ -82,11 +80,11 @@ export const calculateNameScore = (
   const trimmedUcpName = ucpInstitutionName.toLowerCase().trim();
 
   if (trimmedAggregatorInstitutionName === trimmedUcpName) {
-    return 1.0;
+    return { name: scoreName, score: 1.0, type: MatchType.ExactOriginal };
   }
 
   if (normalizedAggregatorInstitutionName === normalizedUcpName) {
-    return 0.95;
+    return { name: scoreName, score: 0.95, type: MatchType.ExactNormalized };
   }
 
   if (normalizedAggregatorInstitutionName && normalizedUcpName) {
@@ -105,16 +103,16 @@ export const calculateNameScore = (
     }
 
     if (similarity >= 0.5) {
-      return similarity;
+      return { name: scoreName, score: similarity, type: MatchType.Similarity };
     } else if (
       normalizedAggregatorInstitutionName.startsWith(normalizedUcpName) ||
       normalizedUcpName.startsWith(normalizedAggregatorInstitutionName)
     ) {
-      return 0.4;
+      return { name: scoreName, score: 0.4, type: MatchType.StartsWith };
     }
   }
 
-  return 0;
+  return { name: scoreName, score: 0, type: MatchType.NoMatch };
 };
 
 export const extractDomain = (url: string): string => {
@@ -142,51 +140,72 @@ export const normalizeUrl = (url: string): string => {
     .replace(/www\./, "");
 };
 
-export const calculateUrlScore = (aggregatorUrl: string, ucpUrl: string) => {
+export const calculateUrlScore = (
+  aggregatorUrl: string,
+  ucpUrl: string
+): Score => {
+  const scoreName = "url";
+
   if (!aggregatorUrl || !ucpUrl) {
-    return 0;
+    return { name: scoreName, score: 0, type: MatchType.Missing };
+  }
+
+  if (aggregatorUrl.toLowerCase().trim() === ucpUrl.toLowerCase().trim()) {
+    return { name: scoreName, score: 1.0, type: MatchType.ExactOriginal };
   }
 
   const normalizedAggregatorUrl = normalizeUrl(aggregatorUrl);
   const normalizedUcpUrl = normalizeUrl(ucpUrl);
+
+  if (normalizedAggregatorUrl === normalizedUcpUrl) {
+    return { name: scoreName, score: 0.95, type: MatchType.ExactNormalized };
+  }
+
+  const plaidDomain = extractDomain(normalizedAggregatorUrl);
+  const ucpDomain = extractDomain(normalizedUcpUrl);
+
+  if (plaidDomain === ucpDomain) {
+    return { name: scoreName, score: 0.8, type: MatchType.ExactDomain };
+  }
 
   const similarity = calculateSimilarity(
     normalizedAggregatorUrl,
     normalizedUcpUrl
   );
 
-  const plaidDomain = extractDomain(normalizedAggregatorUrl);
-  const ucpDomain = extractDomain(normalizedUcpUrl);
-
   const domainSimilarity = calculateSimilarity(plaidDomain, ucpDomain) * 0.9;
 
-  return similarity >= domainSimilarity ? similarity : domainSimilarity;
+  return similarity >= domainSimilarity
+    ? { name: scoreName, score: similarity, type: MatchType.Similarity }
+    : {
+        name: scoreName,
+        score: domainSimilarity,
+        type: MatchType.DomainSimilarity,
+      };
 };
 
-interface AggregatorInstitution {
-  name?: string;
-  url?: string;
-}
-
 export const findPotentialMatches = (
-  aggregatorInstitution: AggregatorInstitution,
-  ucpInstitutions: any[]
+  aggregatorInstitution: AggregatorMatchingInstitution,
+  ucpInstitutions: UCPInstitution[]
 ) => {
   const maxResults = 5;
 
   const matches = [];
 
   for (const ucpInst of ucpInstitutions) {
-    const scores = {
-      ...(aggregatorInstitution.name
-        ? { name: calculateNameScore(aggregatorInstitution.name, ucpInst.name) }
-        : {}),
-      ...(aggregatorInstitution.url
-        ? { url: calculateUrlScore(aggregatorInstitution.url, ucpInst.url) }
-        : {}),
-    };
+    const scores = [];
 
-    const sortedScores = Object.values(scores).sort((a, b) => b - a);
+    if (aggregatorInstitution.name) {
+      scores.push(calculateNameScore(aggregatorInstitution.name, ucpInst.name));
+    }
+
+    if (aggregatorInstitution.url) {
+      scores.push(calculateUrlScore(aggregatorInstitution.url, ucpInst.url));
+    }
+
+    const sortedScores = scores
+      .map((score) => score.score)
+      .sort((a, b) => b - a);
 
     let topScoresAverage = sortedScores?.[0];
 
@@ -198,32 +217,11 @@ export const findPotentialMatches = (
       sortedScores.reduce((accumulator, current) => accumulator + current, 0) /
       sortedScores.length;
 
-    const matchTypes = [];
-
-    if (scores.name) {
-      if (scores.name === 1.0) {
-        matchTypes.push("nameExactOriginal");
-      } else if (scores.name >= 0.95) {
-        matchTypes.push("nameExactNormalized");
-      } else {
-        matchTypes.push("nameSimilarity");
-      }
-    }
-
-    if (scores.url) {
-      if (scores.url >= 0.95) {
-        matchTypes.push("urlExactNormalized");
-      } else {
-        matchTypes.push("urlDomainSimilarity");
-      }
-    }
-
     if (topScoresAverage > 0.49) {
       matches.push({
         institution: ucpInst,
         score: topScoresAverage,
         averageTotalScore,
-        matchTypes: matchTypes,
         scoreBreakdown: scores,
       });
     }
