@@ -1,6 +1,6 @@
 import { AggregatorMatchingInstitution } from "../shared/const/aggregatorInstitution";
 import { UCPInstitution } from "../shared/const/ucp";
-import { MatchType, Score } from "./const";
+import { Match, MatchType, Score } from "./const";
 
 export function normalizeInstitutionName(name: string): string {
   return (
@@ -63,7 +63,7 @@ export const calculateNameScore = (
   aggregatorInstitutionName: string,
   ucpInstitutionName: string
 ): Score => {
-  const scoreName = "name";
+  const scoreName = "Name";
 
   if (!aggregatorInstitutionName || !ucpInstitutionName) {
     return { name: scoreName, score: 0, type: MatchType.Missing };
@@ -144,7 +144,7 @@ export const calculateUrlScore = (
   aggregatorUrl: string,
   ucpUrl: string
 ): Score => {
-  const scoreName = "url";
+  const scoreName = "URL";
 
   if (!aggregatorUrl || !ucpUrl) {
     return { name: scoreName, score: 0, type: MatchType.Missing };
@@ -187,10 +187,10 @@ export const calculateUrlScore = (
 export const findPotentialMatches = (
   aggregatorInstitution: AggregatorMatchingInstitution,
   ucpInstitutions: UCPInstitution[]
-) => {
+): Match[] => {
   const maxResults = 5;
 
-  const matches = [];
+  const matches: Match[] = [];
 
   for (const ucpInst of ucpInstitutions) {
     const scores = [];
@@ -219,14 +219,16 @@ export const findPotentialMatches = (
 
     if (topScoresAverage > 0.49) {
       matches.push({
-        institution: ucpInst,
-        score: topScoresAverage,
         averageTotalScore,
+        institution: ucpInst,
         scoreBreakdown: scores,
+        top2AverageScore: topScoresAverage,
       });
     }
   }
 
   // Sort by score (highest first) and return top results
-  return matches.sort((a, b) => b.score - a.score).slice(0, maxResults);
+  return matches
+    .sort((a, b) => b.top2AverageScore - a.top2AverageScore)
+    .slice(0, maxResults);
 };

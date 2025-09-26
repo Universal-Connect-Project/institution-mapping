@@ -11,6 +11,7 @@ import {
 } from "./utils";
 import { AggregatorMatchingInstitution } from "../shared/const/aggregatorInstitution";
 import { MatchType, Score } from "./const";
+import { UCPInstitution } from "../shared/const/ucp";
 
 const createExpectScore =
   (name: string) =>
@@ -92,7 +93,7 @@ describe("match institutions", () => {
   });
 
   describe("calculateNameScore", () => {
-    const expectNameScore = createExpectScore("name");
+    const expectNameScore = createExpectScore("Name");
 
     it("returns 0 if either name is missing", () => {
       expectNameScore(
@@ -211,7 +212,7 @@ describe("match institutions", () => {
   });
 
   describe("calculateUrlScore", () => {
-    const expectUrlScore = createExpectScore("url");
+    const expectUrlScore = createExpectScore("URL");
 
     it("returns 0 if either URL is missing", () => {
       expectUrlScore(
@@ -329,7 +330,7 @@ describe("match institutions", () => {
           name: "Bank of America",
           url: "http://www.bankofamerica.com",
         },
-      ];
+      ] as UCPInstitution[];
 
       const matches = findPotentialMatches(
         aggregatorInstitution,
@@ -339,13 +340,13 @@ describe("match institutions", () => {
       expect(matches).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            institution: expect.objectContaining({ name: "Bank of America" }),
-            score: 1.0,
             averageTotalScore: 1.0,
+            institution: expect.objectContaining({ name: "Bank of America" }),
             scoreBreakdown: expect.arrayContaining([
-              { name: "name", score: 1.0, type: MatchType.ExactOriginal },
-              { name: "url", score: 1.0, type: MatchType.ExactOriginal },
+              { name: "Name", score: 1.0, type: MatchType.ExactOriginal },
+              { name: "URL", score: 1.0, type: MatchType.ExactOriginal },
             ]),
+            top2AverageScore: 1.0,
           }),
         ])
       );
@@ -367,7 +368,7 @@ describe("match institutions", () => {
           name: "Chase",
           url: "http://www.chase.com",
         },
-      ];
+      ] as UCPInstitution[];
 
       const matches = findPotentialMatches(
         aggregatorInstitution,
@@ -383,10 +384,11 @@ describe("match institutions", () => {
         url: "http://www.testinstitution.com",
       } as AggregatorMatchingInstitution;
 
-      const ucpInstitutions = [];
+      const ucpInstitutions: UCPInstitution[] = [];
 
       for (let i = 0; i < 10; i++) {
         ucpInstitutions.push({
+          id: `test-institution-${i}`,
           name: `Test Institution ${i}`,
           url: `http://www.testinstitution${i}.com`,
         });

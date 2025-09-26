@@ -1,3 +1,5 @@
+import { UCPInstitution } from "../shared/const/ucp";
+
 export enum MatchType {
   DomainSimilarity = "domain similarity",
   ExactDomain = "exact domain",
@@ -7,6 +9,13 @@ export enum MatchType {
   NoMatch = "no match",
   Similarity = "similarity",
   StartsWith = "starts with",
+}
+
+export interface Match {
+  averageTotalScore: number;
+  institution: UCPInstitution;
+  scoreBreakdown: Score[];
+  top2AverageScore: number;
 }
 
 export interface Score {

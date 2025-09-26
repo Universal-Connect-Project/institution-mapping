@@ -1,23 +1,25 @@
 import { Aggregators } from "../shared/const/aggregators";
 import { loadInstitutions } from "../shared/utils/aggregatorInstitutions";
+import { Match } from "./const";
 import { findPotentialMatches } from "./utils";
 
-const displayMatch = (match: any, index: number) => {
-  const confidence = (match.score * 100).toFixed(1);
-
-  console.log(`${index + 1}. "${match.institution.name}"`);
-  console.log(
-    `   ${confidence}% - ${match.matchType} ${JSON.stringify(
-      match.scoreBreakdown
-    )}`
-  );
-  console.log(`   ${match.averageTotalScore * 100}`);
-  console.log(`   ID: ${match.institution.id}`);
-  if (match.institution.url) {
-    console.log(`   URL: ${match.institution.url}`);
+const displayMatch = (match: Match, index?: number) => {
+  if (index) {
+    console.log(`\nMatch #${index + 1}:`);
   }
-  if (match.routing_numbers && match.routing_numbers.length > 0) {
-    console.log(`   Routing Numbers: ${match.routing_numbers.join(", ")}`);
+  console.log("   Scores:");
+  console.log(`     Top 2 Average Score: ${match.top2AverageScore * 100}`);
+  console.log(`     Average Total Score: ${match.averageTotalScore * 100}`);
+
+  for (const score of match.scoreBreakdown) {
+    console.log(`     ${score.name}: ${score.score * 100} (${score.type})`);
+  }
+
+  console.log("   Institution:");
+  console.log(`     Name: ${match.institution.name}`);
+  console.log(`     ID: ${match.institution.id}`);
+  if (match.institution.url) {
+    console.log(`     URL: ${match.institution.url}`);
   }
 };
 
@@ -30,14 +32,16 @@ export const match = async (aggregator: Aggregators) => {
   const handleAutoMatch = (aggregatorInstitution: any, firstMatch: any) => {
     const ucpInstitution = firstMatch.institution;
 
-    displayMatch(firstMatch, 0);
-
     console.log(
-      "Auto-matching",
+      "🤖 Auto-matching",
       aggregatorInstitution.name,
       "to",
       ucpInstitution.name
     );
+
+    displayMatch(firstMatch, 0);
+
+    console.log("\n");
 
     autoMatches.push({
       aggregatorInstitution,
@@ -55,11 +59,11 @@ export const match = async (aggregator: Aggregators) => {
 
     if (matches.length) {
       if (matches.length === 1) {
-        if (firstMatch.score >= 0.8) {
+        if (firstMatch.top2AverageScore >= 0.8) {
           handleAutoMatch(aggregatorInstitution, firstMatch);
         }
       } else if (matches.length > 1) {
-        if (firstMatch.score >= 0.9) {
+        if (firstMatch.top2AverageScore >= 0.9) {
           handleAutoMatch(aggregatorInstitution, firstMatch);
         } else if (firstMatch.averageTotalScore >= 0.85) {
           handleAutoMatch(aggregatorInstitution, firstMatch);
