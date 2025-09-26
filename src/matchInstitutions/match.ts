@@ -3,23 +3,58 @@ import { loadInstitutions } from "../shared/utils/aggregatorInstitutions";
 import { Match } from "./const";
 import { findPotentialMatches } from "./utils";
 
+const RED = "\x1b[31m";
+const YELLOW = "\x1b[33m";
+const GREEN = "\x1b[32m";
+const RESET = "\x1b[0m";
+
+const renderScore = (score: number) => {
+  const percentageScore = score * 100;
+
+  let colorCode: string;
+  if (percentageScore >= 90) {
+    colorCode = GREEN;
+  } else if (percentageScore >= 70) {
+    colorCode = YELLOW;
+  } else {
+    colorCode = RED;
+  }
+  return `${colorCode}${percentageScore}${RESET}`;
+};
+
+const tab = "    ";
+
+const tabs = (num: number) => {
+  let str = "";
+  for (let i = 0; i < num; i++) {
+    str += tab;
+  }
+  return str;
+};
+
 const displayMatch = (match: Match, index?: number) => {
   if (index) {
     console.log(`\nMatch #${index + 1}:`);
   }
-  console.log("   Scores:");
-  console.log(`     Top 2 Average Score: ${match.top2AverageScore * 100}`);
-  console.log(`     Average Total Score: ${match.averageTotalScore * 100}`);
+  console.log(`${tabs(1)}Scores:`);
+  console.log(
+    `${tabs(2)}Top 2 Average Score: ${renderScore(match.top2AverageScore)}`
+  );
+  console.log(
+    `${tabs(2)}Average Total Score: ${renderScore(match.averageTotalScore)}`
+  );
 
   for (const score of match.scoreBreakdown) {
-    console.log(`     ${score.name}: ${score.score * 100} (${score.type})`);
+    console.log(
+      `${tabs(2)}${score.name}: ${renderScore(score.score)} (${score.type})`
+    );
   }
 
-  console.log("   Institution:");
-  console.log(`     Name: ${match.institution.name}`);
-  console.log(`     ID: ${match.institution.id}`);
+  console.log(`${tabs(1)}Institution:`);
+  console.log(`${tabs(2)}Name: ${match.institution.name}`);
+  console.log(`${tabs(2)}ID: ${match.institution.id}`);
   if (match.institution.url) {
-    console.log(`     URL: ${match.institution.url}`);
+    console.log(`${tabs(2)}URL: ${match.institution.url}`);
   }
 };
 
