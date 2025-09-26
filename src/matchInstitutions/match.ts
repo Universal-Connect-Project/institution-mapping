@@ -22,12 +22,12 @@ const renderScore = (score: number) => {
   return `${colorCode}${percentageScore}${RESET}`;
 };
 
-const tab = "    ";
+const twoSpaces = "  ";
 
-const tabs = (num: number) => {
+const spacing = (num: number) => {
   let str = "";
   for (let i = 0; i < num; i++) {
-    str += tab;
+    str += twoSpaces;
   }
   return str;
 };
@@ -36,25 +36,25 @@ const displayMatch = (match: Match, index?: number) => {
   if (index) {
     console.log(`\nMatch #${index + 1}:`);
   }
-  console.log(`${tabs(1)}Scores:`);
+  console.log(`${spacing(1)}Scores:`);
   console.log(
-    `${tabs(2)}Top 2 Average Score: ${renderScore(match.top2AverageScore)}`
+    `${spacing(2)}Top 2 Average Score: ${renderScore(match.top2AverageScore)}`
   );
   console.log(
-    `${tabs(2)}Average Total Score: ${renderScore(match.averageTotalScore)}`
+    `${spacing(2)}Average Total Score: ${renderScore(match.averageTotalScore)}`
   );
 
   for (const score of match.scoreBreakdown) {
     console.log(
-      `${tabs(2)}${score.name}: ${renderScore(score.score)} (${score.type})`
+      `${spacing(2)}${score.name}: ${renderScore(score.score)} (${score.type})`
     );
   }
 
-  console.log(`${tabs(1)}Institution:`);
-  console.log(`${tabs(2)}Name: ${match.institution.name}`);
-  console.log(`${tabs(2)}ID: ${match.institution.id}`);
+  console.log(`${spacing(1)}Institution:`);
+  console.log(`${spacing(2)}Name: ${match.institution.name}`);
+  console.log(`${spacing(2)}ID: ${match.institution.id}`);
   if (match.institution.url) {
-    console.log(`${tabs(2)}URL: ${match.institution.url}`);
+    console.log(`${spacing(2)}URL: ${match.institution.url}`);
   }
 };
 
