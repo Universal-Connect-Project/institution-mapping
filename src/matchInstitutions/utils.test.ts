@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  calculateEditDistance,
   calculateNameScore,
   calculateSimilarity,
   calculateUrlScore,
@@ -52,25 +51,6 @@ describe("match institutions", () => {
 
       for (const [input, expected] of testCases) {
         expect(normalizeInstitutionName(input)).toBe(expected);
-      }
-    });
-  });
-
-  describe("calculateEditDistance", () => {
-    it("should calculate edit distance between two strings", () => {
-      const testCases: [string, string, number][] = [
-        ["kitten", "sitting", 3],
-        ["flaw", "lawn", 2],
-        ["intention", "execution", 5],
-        ["", "", 0],
-        ["a", "", 1],
-        ["", "a", 1],
-        ["abc", "abc", 0],
-        ["", "", 0],
-      ];
-
-      for (const [str1, str2, expected] of testCases) {
-        expect(calculateEditDistance(str1, str2)).toBe(expected);
       }
     });
   });

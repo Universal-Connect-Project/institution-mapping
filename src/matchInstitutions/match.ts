@@ -1,5 +1,6 @@
 import { Aggregators } from "../shared/const/aggregators";
 import { loadInstitutions } from "../shared/utils/aggregatorInstitutions";
+import { writeAutoMatches } from "../shared/utils/institutionMatching";
 import { Match } from "./const";
 import { findPotentialMatches } from "./utils";
 
@@ -59,10 +60,12 @@ const displayMatch = (match: Match, index?: number) => {
 };
 
 export const match = async (aggregator: Aggregators) => {
+  const startTime = Date.now();
+
   const aggregatorInstitutions = await loadInstitutions(aggregator);
   const ucpInstitutions = await loadInstitutions("ucp");
 
-  const autoMatches = [];
+  const autoMatches: { aggregatorInstitution: any; ucpInstitution: any }[] = [];
 
   const handleAutoMatch = (aggregatorInstitution: any, firstMatch: any) => {
     const ucpInstitution = firstMatch.institution;
@@ -74,7 +77,7 @@ export const match = async (aggregator: Aggregators) => {
       ucpInstitution.name
     );
 
-    displayMatch(firstMatch, 0);
+    displayMatch(firstMatch);
 
     console.log("\n");
 
@@ -107,7 +110,10 @@ export const match = async (aggregator: Aggregators) => {
     }
   }
 
+  await writeAutoMatches(autoMatches);
+
   console.log("Total aggregator institutions:", aggregatorInstitutions.length);
   console.log("Total UCP institutions:", ucpInstitutions.length);
   console.log("Total auto-matches found:", autoMatches.length);
+  console.log("Time taken (seconds):", (Date.now() - startTime) / 1000);
 };

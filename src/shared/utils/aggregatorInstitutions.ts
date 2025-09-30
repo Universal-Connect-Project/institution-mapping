@@ -15,7 +15,7 @@ export const getAggregatorInstitutionsPath = (aggregator: string) => {
   return `${getAggregatorInstitutionsFolderPath()}/${aggregator}.json`;
 };
 
-interface FinicityInstitution {
+export interface FinicityInstitution {
   accountOwner: boolean;
   ach: boolean;
   aha: boolean;
@@ -25,7 +25,7 @@ interface FinicityInstitution {
   urlHomeApp: string;
 }
 
-const mapFinicityInstitution = ({
+export const mapFinicityInstitution = ({
   id,
   name,
   urlHomeApp,
@@ -43,7 +43,6 @@ export const loadInstitutions = async (aggregatorOrUcp: string) => {
   try {
     const data = await promises.readFile(institutionsPath, "utf-8");
 
-    // This needs to map institutions for specific aggregators if their structure is different
     const parsedData = JSON.parse(data);
 
     switch (aggregatorOrUcp) {

@@ -3,6 +3,8 @@ export const finicityInstitutionsPage1 = {
   institutions: [
     {
       id: 1,
+      name: "Bank of Testing",
+      urlHomeApp: "https://www.bankoftesting.com",
     },
   ],
 };
